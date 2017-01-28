@@ -38,6 +38,7 @@ func (sc *SizeChanger) Close() (err error) {
 	if sc.done != nil {
 		close(sc.done)
 		sc.done = nil
+		sc.Change = nil
 	}
 
 	return

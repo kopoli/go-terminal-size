@@ -1,4 +1,4 @@
-// +build linux
+// +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
 package terminal_size
 
@@ -41,7 +41,9 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 func getTerminalSizeChanges(fp *os.File, sc chan Size, done chan struct{}) (error) {
 	ch := make(chan os.Signal, 1)
 
-	signal.Notify(ch, unix.SIGWINCH)
+	sig := unix.SIGWINCH
+
+	signal.Notify(ch, sig)
 	go func() {
 		for {
 			select {
@@ -53,7 +55,7 @@ func getTerminalSizeChanges(fp *os.File, sc chan Size, done chan struct{}) (erro
 					sc <- s
 				}
 			case <-done:
-				signal.Reset(unix.SIGWINCH)
+				signal.Reset(sig)
 				close(ch)
 				return
 			}
