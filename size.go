@@ -45,19 +45,13 @@ func (sc *SizeChanger) Close() (err error) {
 }
 
 func NewSizeChanger() (sc *SizeChanger, err error) {
-	fp := os.Stdout
-	_, err = FgetSize(fp)
-	if err != nil {
-		return
-	}
-
 	sc = &SizeChanger{}
 
 	sizechan := make(chan Size, 1)
 	sc.Change = sizechan
 	sc.done = make(chan struct{})
 
-	err = getTerminalSizeChanges(fp, sizechan, sc.done)
+	err = getTerminalSizeChanges(sizechan, sc.done)
 	if err != nil {
 		close(sizechan)
 		close(sc.done)

@@ -28,17 +28,16 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 
 	if errno != 0 {
 		err = errno
+		return
 	}
 
-	if err == nil {
-		width = int(ws.cols)
-		height = int(ws.rows)
-	}
+	width = int(ws.cols)
+	height = int(ws.rows)
 
 	return
 }
 
-func getTerminalSizeChanges(fp *os.File, sc chan Size, done chan struct{}) (error) {
+func getTerminalSizeChanges(sc chan Size, done chan struct{}) (error) {
 	ch := make(chan os.Signal, 1)
 
 	sig := unix.SIGWINCH
@@ -50,7 +49,7 @@ func getTerminalSizeChanges(fp *os.File, sc chan Size, done chan struct{}) (erro
 			case <-ch:
 				s := Size{}
 				var err error
-				s.Width, s.Height, err = getTerminalSize(fp)
+				s.Width, s.Height, err = getTerminalSize(os.Stdout)
 				if err == nil {
 					sc <- s
 				}
