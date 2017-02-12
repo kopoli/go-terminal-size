@@ -3,11 +3,8 @@
 package terminal_size
 
 import (
-	"fmt"
 	"os"
 	"unsafe"
-
-	"github.com/davecgh/go-spew/spew"
 
 	"golang.org/x/sys/windows"
 )
@@ -45,22 +42,12 @@ type consoleScreenBufferInfo struct {
 	maximumWindowSize coord
 }
 
-// Console modes
-// https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033.aspx
 const (
-	// enableProcessedInput uint32 = 1 << iota
-	// enableLineInput
-	// enableEchoInput
+	// Console mode
+	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033.aspx
 	enableWindowInput uint32 = 0x0008
-	// enableMouseInput
-	// enableInsertMode
-	// enableQuickEditMode
-	// enableExtendedFlags
 
-	// enableVirtualTerminalInput uint32 = 0x0200
-)
-
-const (
+	// INPU_RECORD EventType
 	windowBufferSizeEvent uint16 = 0x0004
 )
 
@@ -68,7 +55,6 @@ const (
 // The only interesting thing is the event itself
 type inputRecord struct {
 	eventType uint16
-	// win       windowBufferSizeRecord
 
 	// Largest sub-struct in the union is the KEY_EVENT_RECORD with 4+2+2+2+2+4=16 bytes
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms684166(v=vs.85).aspx
@@ -79,9 +65,6 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 	csbi := consoleScreenBufferInfo{}
 	ret, _, err := getConsoleScreenBufferInfo.Call(uintptr(windows.Handle(fp.Fd())),
 		uintptr(unsafe.Pointer(&csbi)))
-
-	fmt.Println("Ret on", ret, "ja err", err)
-	fmt.Println(csbi)
 
 	if ret == 0 {
 		return
@@ -102,20 +85,14 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 	// Get terminal mode
 	handle := uintptr(windows.Handle(os.Stdin.Fd()))
 	ret, _, err := getConsoleMode.Call(handle, uintptr(unsafe.Pointer(&oldmode)))
-
 	if ret == 0 {
 		err = NotATerminal
 		return
 	}
 
-	fmt.Println("Old mode is", oldmode, "Ret", ret, "err", err)
-
 	newmode = oldmode | enableWindowInput
 
 	ret, _, err = setConsoleMode.Call(handle, uintptr(newmode))
-
-	fmt.Println("new mode setting Ret", ret, "err", err, "newmode", newmode)
-
 	if ret == 0 {
 		return
 	}
@@ -131,11 +108,7 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 				uintptr(unsafe.Pointer(&count)),
 			)
 
-			fmt.Println("ret consolein", ret, "err", err, "count", count, "len", len(irs))
-
 			if ret != 0 {
-				spew.Dump("returned ", irs[:count])
-
 				var i uint32
 				for i = 0; i < count; i++ {
 					if irs[i].eventType == windowBufferSizeEvent {
@@ -143,7 +116,6 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 
 						// Getting the terminal size through Stdout gives the proper values.
 						s.Width, s.Height, err = getTerminalSize(os.Stdout)
-						spew.Dump(s)
 						if err == nil {
 							sc <- s
 						}

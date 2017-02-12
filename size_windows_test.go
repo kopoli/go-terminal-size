@@ -23,20 +23,16 @@ var (
 		r1:      1,
 		lastErr: nil,
 		process: func(a ...uintptr) {
-
-			// spew.Dump(a)
-			// fmt.Println("JEJEE!")
-			// b := &a[1]
 			b := (*uint32)(unsafe.Pointer(a[1]))
-			// *a[1] = 7
 			*b = 7
-			// spew.Dump(a)
 		},
 	}
 	fakeSetConsoleMode = &mockProc{
 		r1:      1,
 		lastErr: nil,
 	}
+
+	// Always returns a windowBufferSizeEvent
 	fakeReadConsoleInput = &mockProc{
 		r1:      1,
 		lastErr: nil,
@@ -51,15 +47,10 @@ var (
 )
 
 func init() {
-
-	// Start mocking
+	// Mock some windows functions
 	getConsoleMode = fakeGetConsoleMode
 	setConsoleMode = fakeSetConsoleMode
 	readConsoleInput = fakeReadConsoleInput
-	// getConsoleScreenBufferInfo proc = kernel32.NewProc("GetConsoleScreenBufferInfo")
-	// getConsoleMode             proc = kernel32.NewProc("GetConsoleMode")
-	// setConsoleMode             proc = kernel32.NewProc("SetConsoleMode")
-	// readConsoleInput           proc = kernel32.NewProc("ReadConsoleInputW")
 }
 
 func triggerFakeResize() {
