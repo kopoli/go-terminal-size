@@ -1,4 +1,4 @@
-package terminal_size
+package tsize
 
 import (
 	"testing"

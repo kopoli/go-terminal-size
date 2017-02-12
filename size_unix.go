@@ -1,6 +1,6 @@
 // +build darwin dragonfly freebsd linux nacl netbsd openbsd solaris
 
-package terminal_size
+package tsize
 
 import (
 	"os"

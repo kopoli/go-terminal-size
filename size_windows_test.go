@@ -1,6 +1,6 @@
 // +build windows
 
-package terminal_size
+package tsize
 
 import "unsafe"
 
