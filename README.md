@@ -1,5 +1,8 @@
 # Go terminal size
 
+[![GoDoc](https://godoc.org/github.com/kopoli/go-terminal-size?status.svg)](https://godoc.org/github.com/kopoli/go-terminal-size)
+[![Build Status](https://travis-ci.org/kopoli/go-terminal-size.svg?branch=master)](https://travis-ci.org/kopoli/go-terminal-size)
+
 ## Installation
 
 ```
