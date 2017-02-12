@@ -12,12 +12,17 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+// Make an interface to be able to mock DLL interfaces
+type proc interface {
+	Call(a ...uintptr) (r1, r2 uintptr, lastErr error)
+}
+
 var (
-	kernel32                   = windows.NewLazySystemDLL("kernel32")
-	getConsoleScreenBufferInfo = kernel32.NewProc("GetConsoleScreenBufferInfo")
-	getConsoleMode             = kernel32.NewProc("GetConsoleMode")
-	setConsoleMode             = kernel32.NewProc("SetConsoleMode")
-	readConsoleInput           = kernel32.NewProc("ReadConsoleInputW")
+	kernel32                        = windows.NewLazySystemDLL("kernel32")
+	getConsoleScreenBufferInfo proc = kernel32.NewProc("GetConsoleScreenBufferInfo")
+	getConsoleMode             proc = kernel32.NewProc("GetConsoleMode")
+	setConsoleMode             proc = kernel32.NewProc("SetConsoleMode")
+	readConsoleInput           proc = kernel32.NewProc("ReadConsoleInputW")
 )
 
 type coord struct {
@@ -43,37 +48,31 @@ type consoleScreenBufferInfo struct {
 // Console modes
 // https://msdn.microsoft.com/en-us/library/windows/desktop/ms686033.aspx
 const (
-	enableProcessedInput uint32 = 1 << iota
-	enableLineInput
-	enableEchoInput
-	enableWindowInput
-	enableMouseInput
-	enableInsertMode
-	enableQuickEditMode
-	enableExtendedFlags
+	// enableProcessedInput uint32 = 1 << iota
+	// enableLineInput
+	// enableEchoInput
+	enableWindowInput uint32 = 0x0008
+	// enableMouseInput
+	// enableInsertMode
+	// enableQuickEditMode
+	// enableExtendedFlags
 
-	enableVirtualTerminalInput uint32 = 0x0200
+	// enableVirtualTerminalInput uint32 = 0x0200
 )
-
-type windowBufferSizeRecord struct {
-	size coord
-}
 
 const (
 	windowBufferSizeEvent uint16 = 0x0004
 )
 
 // INPUT_RECORD is defined in https://msdn.microsoft.com/en-us/library/windows/desktop/ms683499(v=vs.85).aspx
+// The only interesting thing is the event itself
 type inputRecord struct {
 	eventType uint16
-	win       windowBufferSizeRecord
+	// win       windowBufferSizeRecord
 
 	// Largest sub-struct in the union is the KEY_EVENT_RECORD with 4+2+2+2+2+4=16 bytes
 	// https://msdn.microsoft.com/en-us/library/windows/desktop/ms684166(v=vs.85).aspx
-
-	// Make the inputRecord be of the same size as INPUT_RECORD. We are
-	// only interested on the WINDOW_BUFFER_SIZE_RECORDs, so buffer this with 16-4=12 bytes
-	buf [12]byte
+	buf [16]byte
 }
 
 func getTerminalSize(fp *os.File) (width int, height int, err error) {
@@ -82,7 +81,6 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 		uintptr(unsafe.Pointer(&csbi)))
 
 	fmt.Println("Ret on", ret, "ja err", err)
-
 	fmt.Println(csbi)
 
 	if ret == 0 {
@@ -93,31 +91,24 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 	width = int(csbi.size.x)
 	height = int(csbi.size.y)
 
-	// Debug
-	// var oldmode uint32
-	// ret, _ , err = getConsoleMode.Call(uintptr(windows.Handle(fp.Fd())),
-	// 	uintptr(unsafe.Pointer(&oldmode)))
-
-	// fmt.Println("Old mode is", oldmode, "Ret", ret)
-
 	return
 }
 
 // changes can be read with https://msdn.microsoft.com/en-us/library/windows/desktop/ms685035.aspx
-
 func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 
 	var oldmode, newmode uint32
 
-	// Get
+	// Get terminal mode
 	handle := uintptr(windows.Handle(os.Stdin.Fd()))
 	ret, _, err := getConsoleMode.Call(handle, uintptr(unsafe.Pointer(&oldmode)))
 
-	fmt.Println("Old mode is", oldmode, "Ret", ret, "err", err)
-
 	if ret == 0 {
+		err = NotATerminal
 		return
 	}
+
+	fmt.Println("Old mode is", oldmode, "Ret", ret, "err", err)
 
 	newmode = oldmode | enableWindowInput
 
@@ -163,7 +154,7 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 
 			select {
 			case <-done:
-				getConsoleMode.Call(handle, uintptr(oldmode))
+				setConsoleMode.Call(handle, uintptr(oldmode))
 				return
 			default:
 			}
