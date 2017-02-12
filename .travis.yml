@@ -1,0 +1,12 @@
+language: go
+
+go:
+  - 1.7.x
+  - tip
+
+install:
+  - true
+
+script:
+  - go build
+  - go test
