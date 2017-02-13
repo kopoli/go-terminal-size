@@ -9,3 +9,9 @@ import (
 func triggerFakeResize() {
 	unix.Kill(unix.Getpid(), unix.SIGWINCH)
 }
+
+func fakeSize(s Size) {
+}
+
+func unFakeSize() {
+}
