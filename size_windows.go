@@ -61,7 +61,7 @@ type inputRecord struct {
 	buf [16]byte
 }
 
-func getTerminalSize(fp *os.File) (width int, height int, err error) {
+func getTerminalSize(fp *os.File) (s Size, err error) {
 	csbi := consoleScreenBufferInfo{}
 	ret, _, err := getConsoleScreenBufferInfo.Call(uintptr(windows.Handle(fp.Fd())),
 		uintptr(unsafe.Pointer(&csbi)))
@@ -71,8 +71,10 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 	}
 
 	err = nil
-	width = int(csbi.size.x)
-	height = int(csbi.size.y)
+	s = Size{
+		Width: int(csbi.size.x),
+		Height:  int(csbi.size.y),
+	}
 
 	return
 }
@@ -102,7 +104,7 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 		var count uint32
 
 		for {
-			ret, _, err := readConsoleInput.Call(handle,
+			ret, _, _ := readConsoleInput.Call(handle,
 				uintptr(unsafe.Pointer(&irs)),
 				uintptr(len(irs)),
 				uintptr(unsafe.Pointer(&count)),
@@ -112,10 +114,8 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 				var i uint32
 				for i = 0; i < count; i++ {
 					if irs[i].eventType == windowBufferSizeEvent {
-						var s Size
-
 						// Getting the terminal size through Stdout gives the proper values.
-						s.Width, s.Height, err = getTerminalSize(os.Stdout)
+						s, err := getTerminalSize(os.Stdout)
 						if err == nil {
 							sc <- s
 						}

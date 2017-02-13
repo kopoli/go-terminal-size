@@ -30,7 +30,7 @@ func FgetSize(fp *os.File) (s Size, err error) {
 		return
 	}
 
-	s.Width, s.Height, err = getTerminalSize(fp)
+	s, err = getTerminalSize(fp)
 	return
 }
 

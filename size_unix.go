@@ -17,7 +17,7 @@ type winsize struct {
 	y    uint16
 }
 
-func getTerminalSize(fp *os.File) (width int, height int, err error) {
+func getTerminalSize(fp *os.File) (s Size, err error) {
 	ws := winsize{}
 
 	_, _, errno := unix.Syscall(
@@ -31,8 +31,10 @@ func getTerminalSize(fp *os.File) (width int, height int, err error) {
 		return
 	}
 
-	width = int(ws.cols)
-	height = int(ws.rows)
+	s = Size{
+		Width: int(ws.cols),
+		Height: int(ws.rows),
+	}
 
 	return
 }
@@ -47,9 +49,8 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (error) {
 		for {
 			select {
 			case <-ch:
-				s := Size{}
 				var err error
-				s.Width, s.Height, err = getTerminalSize(os.Stdout)
+				s, err := getTerminalSize(os.Stdout)
 				if err == nil {
 					sc <- s
 				}
