@@ -33,7 +33,8 @@ func TestFgetSize(t *testing.T) {
 }
 
 func TestSizeChanger(t *testing.T) {
-	fakeSize(Size{10, 20})
+	defSize := Size{10, 20}
+	fakeSize(defSize)
 	defer unFakeSize()
 
 	sc, err := NewSizeChanger()
@@ -45,7 +46,7 @@ func TestSizeChanger(t *testing.T) {
 	triggerFakeResize()
 	select {
 	case s := <-sc.Change:
-		if s.Width == 0 || s.Height == 0 {
+		if s.Width != defSize.Width || s.Height != defSize.Height {
 			t.Fatal("Terminal size should not be", s.Width, s.Height)
 		}
 	case <-time.After(1 * time.Second):
