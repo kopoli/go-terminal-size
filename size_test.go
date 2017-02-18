@@ -24,7 +24,7 @@ func TestGetSize(t *testing.T) {
 func TestFgetSize(t *testing.T) {
 	_, err := FgetSize(nil)
 
-	if err != NotATerminal {
+	if err != ErrNotATerminal {
 		t.Fatal("Should fail with NotATerminal")
 	}
 }
