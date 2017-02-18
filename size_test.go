@@ -1,17 +1,14 @@
 package tsize
 
 import (
-	"os"
 	"testing"
 	"time"
-
-	isatty "github.com/mattn/go-isatty"
 )
 
 func TestGetSize(t *testing.T) {
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		t.Skip("Skipping real terminal size test as not connected to a terminal")
-	}
+	defSize := Size{10, 20}
+	fakeSize(defSize)
+	defer unFakeSize()
 
 	s, err := GetSize()
 
@@ -19,7 +16,7 @@ func TestGetSize(t *testing.T) {
 		t.Fatal("Failed with", err)
 	}
 
-	if s.Width == 0 || s.Height == 0 {
+	if s.Width != defSize.Width || s.Height != defSize.Height {
 		t.Fatal("Terminal size should not be", s.Width, s.Height)
 	}
 }

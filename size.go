@@ -16,6 +16,8 @@ type Size struct {
 	Height int
 }
 
+var isTerminal = isatty.IsTerminal
+
 // NotATerminal is the error to return if the given file to FgetSize isn't a
 // terminal.
 var NotATerminal = errors.New("Given file is not a terminal")
@@ -28,7 +30,7 @@ func GetSize() (s Size, err error) {
 
 // FgetSize gets the terminal size of a given os.File. Returns the NotATerminal error, if it is not a terminal.
 func FgetSize(fp *os.File) (s Size, err error) {
-	if fp == nil || !isatty.IsTerminal(fp.Fd()) {
+	if fp == nil || !isTerminal(fp.Fd()) {
 		err = NotATerminal
 		return
 	}

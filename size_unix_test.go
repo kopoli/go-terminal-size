@@ -20,14 +20,26 @@ func genFakeSyscall(s Size) func(trap, a1, a2, a3 uintptr) (r1, r2 uintptr, err 
 	}
 }
 
+var origIsTerminal func(uintptr) bool
+
+func init() {
+	origIsTerminal = isTerminal
+}
+
+func fakeIsTerminal(uintptr) bool {
+	return true
+}
+
 func triggerFakeResize() {
 	unix.Kill(unix.Getpid(), unix.SIGWINCH)
 }
 
 func fakeSize(s Size) {
 	unixSyscall = genFakeSyscall(s)
+	isTerminal = fakeIsTerminal
 }
 
 func unFakeSize() {
 	unixSyscall = unix.Syscall
+	isTerminal = origIsTerminal
 }
