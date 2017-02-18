@@ -9,21 +9,24 @@ import (
 	isatty "github.com/mattn/go-isatty"
 )
 
-// Terminal size in columns and rows as Width and Height, respectively.
+// Size represents terminal size in columns and rows as Width and Height,
+// respectively.
 type Size struct {
 	Width  int
 	Height int
 }
 
-// Error to return if the given file to FgetSize isn't a terminal
+// NotATerminal is the error to return if the given file to FgetSize isn't a
+// terminal.
 var NotATerminal = errors.New("Given file is not a terminal")
 
-// Get the current terminal size.
+// GetSize gets the current terminal size. The terminal is expected to be
+// os.Stdout. Returns the NotATerminal error, if it is not a terminal.
 func GetSize() (s Size, err error) {
 	return FgetSize(os.Stdout)
 }
 
-// Get the terminal size of a given os.File.
+// FgetSize gets the terminal size of a given os.File. Returns the NotATerminal error, if it is not a terminal.
 func FgetSize(fp *os.File) (s Size, err error) {
 	if fp == nil || !isatty.IsTerminal(fp.Fd()) {
 		err = NotATerminal
