@@ -32,12 +32,12 @@ func TestFgetSize(t *testing.T) {
 	}
 }
 
-func TestSizeChanger(t *testing.T) {
+func TestSizeListener(t *testing.T) {
 	defSize := Size{10, 20}
 	fakeSize(defSize)
 	defer unFakeSize()
 
-	sc, err := NewSizeChanger()
+	sc, err := NewSizeListener()
 
 	if err != nil {
 		t.Fatal("Creating SizeChanger failed with", err)

@@ -34,15 +34,17 @@ func FgetSize(fp *os.File) (s Size, err error) {
 	return
 }
 
-// Listens to terminal size changes
-type SizeChanger struct {
+// SizeListener listens to terminal size changes. The new size is returned
+// through the Change channel when the change occurs.
+type SizeListener struct {
 	Change <-chan Size
 
 	done chan struct{}
 }
 
-// Stop listening to terminal size changes
-func (sc *SizeChanger) Close() (err error) {
+// Close implements the io.Closer interface that stops listening to terminal
+// size changes.
+func (sc *SizeListener) Close() (err error) {
 	if sc.done != nil {
 		close(sc.done)
 		sc.done = nil
@@ -52,9 +54,9 @@ func (sc *SizeChanger) Close() (err error) {
 	return
 }
 
-// Create a new size change listener
-func NewSizeChanger() (sc *SizeChanger, err error) {
-	sc = &SizeChanger{}
+// NewSizeListener creates a new size change listener
+func NewSizeListener() (sc *SizeListener, err error) {
+	sc = &SizeListener{}
 
 	sizechan := make(chan Size, 1)
 	sc.Change = sizechan
@@ -64,7 +66,7 @@ func NewSizeChanger() (sc *SizeChanger, err error) {
 	if err != nil {
 		close(sizechan)
 		close(sc.done)
-		sc = &SizeChanger{}
+		sc = &SizeListener{}
 		return
 	}
 

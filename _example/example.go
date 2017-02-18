@@ -19,7 +19,7 @@ func main() {
 	}
 	printSize(s)
 
-	sc, err := tsize.NewSizeChanger()
+	sc, err := tsize.NewSizeListener()
 	if err != nil {
 		fmt.Println("initializing failed:", err)
 		return
