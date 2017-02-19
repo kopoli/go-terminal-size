@@ -88,7 +88,7 @@ func getTerminalSizeChanges(sc chan Size, done chan struct{}) (err error) {
 	handle := uintptr(windows.Handle(os.Stdin.Fd()))
 	ret, _, err := getConsoleMode.Call(handle, uintptr(unsafe.Pointer(&oldmode)))
 	if ret == 0 {
-		err = NotATerminal
+		err = ErrNotATerminal
 		return
 	}
 
