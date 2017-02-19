@@ -1,5 +1,4 @@
-// Get terminal size. Supports Linux and Windows.
-
+// Package tsize gets the terminal size. Supports Linux and Windows.
 package tsize
 
 import (
