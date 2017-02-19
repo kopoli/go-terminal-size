@@ -29,7 +29,7 @@ func main() {
 
 	for {
 		select {
-			case s = <-sc.Change:
+		case s = <-sc.Change:
 			printSize(s)
 		}
 	}
