@@ -72,8 +72,8 @@ func getTerminalSize(fp *os.File) (s Size, err error) {
 
 	err = nil
 	s = Size{
-		Width: int(csbi.size.x),
-		Height:  int(csbi.size.y),
+		Width:  int(csbi.size.x),
+		Height: int(csbi.size.y),
 	}
 
 	return

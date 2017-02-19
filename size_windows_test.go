@@ -78,7 +78,6 @@ func init() {
 func triggerFakeResize() {
 }
 
-
 func TestGetTerminalSize(t *testing.T) {
 	value := Size{11, 12}
 	fakeSize(value)
